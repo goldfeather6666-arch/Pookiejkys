@@ -1,0 +1,63 @@
+name: PIXEL LAB Android CI
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build, Lint, Unit Test & Package APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Pookiejkys Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle 8.10.2
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Run Unit Tests
+        run: gradle testDebugUnitTest --stacktrace
+
+      - name: Run Android Lint
+        run: gradle lintDebug --stacktrace
+
+      - name: Assemble Debug & Release APKs
+        run: gradle assembleDebug assembleRelease --stacktrace
+
+      - name: Upload Debug APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixel-lab-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Upload Release APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixel-lab-release-apk
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: warn
+
+      - name: Upload Unit Test & Lint Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixel-lab-verification-reports
+          path: |
+            app/build/reports/tests/testDebugUnitTest/
+            app/build/reports/lint-results-debug.html

@@ -1,0 +1,52 @@
+name: PIXEL LAB Authorized GitHub Release
+
+# Operating Principle 17: Do not publish a production release without explicit authorization.
+# Triggered ONLY via manual workflow_dispatch with explicit confirmation or an authorized v* tag.
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Authorized version tag (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+      authorize_production:
+        description: 'Type AUTHORIZE to publish GitHub Release'
+        required: true
+        default: 'PENDING'
+
+permissions:
+  contents: write
+
+jobs:
+  authorized-release:
+    name: Build & Publish Authorized Release
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.authorize_production == 'AUTHORIZE' }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle 8.10.2
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Run Verification Suite & Assemble APKs
+        run: gradle testDebugUnitTest assembleDebug assembleRelease --stacktrace
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.release_tag }}
+          name: "PIXEL LAB ${{ github.event.inputs.release_tag }} (Pixel 9 Pro XL Edition)"
+          generate_release_notes: true
+          files: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/release/*.apk
