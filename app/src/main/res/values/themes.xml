@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.PixelLab" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#07090F</item>
+        <item name="android:navigationBarColor">#07090F</item>
+    </style>
+</resources>

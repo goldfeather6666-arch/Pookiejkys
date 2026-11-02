@@ -1,0 +1,3 @@
+-keep class com.pixellab.suite.core.database.** { *; }
+-keep class com.pixellab.suite.domain.** { *; }
+-dontwarn kotlinx.coroutines.**
